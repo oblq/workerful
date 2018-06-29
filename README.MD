@@ -1,4 +1,4 @@
-Workerful [![GoDoc](https://godoc.org/github.com/oblq/goms?status.svg)](https://godoc.org/github.com/oblq/goms/modules/workerful)
+Workerful [![GoDoc](https://godoc.org/github.com/oblq/goms?status.svg)](https://godoc.org/github.com/oblq/workerful)
 ========================================================================================================================
 
 **Workerful** is a simple yet powerful worker pool.
@@ -76,5 +76,4 @@ Gracefully close the job queue:
 
 ## License
 
-ReverseProxy is available under the MIT license. See [the LICENSE
-file](./LICENSE.txt) for more information.
+ReverseProxy is available under the MIT license. See the [LICENSE](./LICENSE) file for more information.
