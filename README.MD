@@ -7,7 +7,7 @@
 ### Installation
 
 ```sh
-$ go get github.com/oblq/goms/workerful
+$ go get github.com/oblq/workerful
 ```
 
 ### Init
