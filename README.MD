@@ -1,4 +1,4 @@
-Workerful [![GoDoc](https://godoc.org/github.com/oblq/goms?status.svg)](https://godoc.org/github.com/oblq/goms/modules/workerful)
+Workerful [![GoDoc](https://godoc.org/github.com/oblq/goms?status.svg)](https://godoc.org/github.com/oblq/workerful)
 ========================================================================================================================
 
 **Workerful** is a simple yet powerful worker pool.
@@ -35,6 +35,9 @@ Get a new instance:
 
 ### Push a job
 
+You can push a simple `func()` or a more complex custom Job (see `workerful.Job` interface).
+Both `PushJob(job Job)` and `PushFunc(job func())` funcs add jobs without blocking (in case you push more jobs than the queue_size). 
+
 Push a simple func():
 ```go
     wp.PushFunc(func() { 
@@ -61,11 +64,8 @@ Push a custom job:
     wp.PushJob(CustomJob{responses, i})
 ```
 
-Both `PushJob(job Job)` and `PushFunc(job func())` funcs add jobs without blocking (in case you push more jobs than the queue_size). 
-
 ### Graceful shutdown
 
-Gracefully close the job queue:
 ```go
     wp.Close()
 ```
@@ -76,5 +76,4 @@ Gracefully close the job queue:
 
 ## License
 
-ReverseProxy is available under the MIT license. See [the LICENSE
-file](./LICENSE.txt) for more information.
+ReverseProxy is available under the MIT license. See the [LICENSE](./LICENSE) file for more information.
