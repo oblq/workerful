@@ -8,7 +8,7 @@ import (
 
 func main() {
 
-	responses := make(chan int, 0)
+	responses := make(chan int)
 
 	wp := workerful.NewWorkerful("", &workerful.Config{QueueSize: 0, Workers: 0})
 
@@ -46,6 +46,7 @@ type CustomJob struct {
 	ID        int
 }
 
+// F execute the job
 func (cj CustomJob) F() error {
 	time.Sleep(time.Second)
 	println("job", cj.ID, "executed...")

@@ -58,13 +58,14 @@ Push a custom job if you need to do pass parameters:
         ID        int
     }
     
-    func (cj CustomJob) DoTheJob() {
+    func (cj CustomJob) F() error {
         time.Sleep(time.Second)
         println("job", cj.ID, "executed...")
         cj.Responses <- 1
+        return nil
     }
         	
-    responses := make(chan int, 0)
+    responses := make(chan int)
 
     wp.PushJob(CustomJob{responses, 1})
         

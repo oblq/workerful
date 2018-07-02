@@ -30,7 +30,11 @@ type Config struct {
 
 // Workerful is the workerful instance type.
 type Workerful struct {
-	Config       *Config
+	Config *Config
+
+	DoneCount   atomic.Int64
+	FailedCount atomic.Int64
+
 	jobQueue     jobQueue
 	workersGroup *sync.WaitGroup
 
@@ -39,9 +43,6 @@ type Workerful struct {
 	// Necessary to avoid sending jobs in the jobQueue when it has been closed.
 	stopGroup   *sync.WaitGroup
 	queueClosed bool
-
-	DoneCount   atomic.Int64
-	FailedCount atomic.Int64
 }
 
 var once sync.Once
@@ -131,17 +132,19 @@ func (wp *Workerful) newWorker() {
 		case Job:
 			if err := job.(Job).F(); err != nil {
 				wp.FailedCount.Inc()
+				log.Printf("[workerful] error from job: %s", err.Error())
 			} else {
 				wp.DoneCount.Inc()
 			}
 		case SimpleJob:
 			if err := job.(SimpleJob)(); err != nil {
 				wp.FailedCount.Inc()
+				log.Printf("[workerful] error from job: %s", err.Error())
 			} else {
 				wp.DoneCount.Inc()
 			}
 		default:
-			log.Println("[workerful] Push() func only accept `Job` (see workerful.Job interface) and `func()` types")
+			log.Println("[workerful] Push() func only accept `Job` (see workerful.Job interface) and `func() error` types")
 			continue
 		}
 	}
@@ -150,9 +153,11 @@ func (wp *Workerful) newWorker() {
 // Stop close the jobQueue, gracefully, it is blocking.
 // Already queued jobs will be processed.
 // It is possible to Stop and (re)Start Workerful at any time.
-// If you continue to send async funcs/jobs after Stop()
-// it will block until all of the queue elements has been processed.
+// If you continue to send async funcs/jobs after Stop() with a buffered jobQueue
+// it will block until all of the jobs are added to the queue.
 func (wp *Workerful) Stop() {
+	// stopGroup will waint until all jobs are sent to the queue
+	// send a job after the channel has been closed will cause a crash otherwise
 	wp.stopGroup.Wait()
 	wp.queueClosed = true
 	close(wp.jobQueue)
