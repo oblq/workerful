@@ -2,6 +2,7 @@ package main
 
 import (
 	"time"
+
 	"github.com/oblq/workerful"
 )
 
@@ -20,9 +21,10 @@ func main() {
 	j := 0
 	for j < int(10) {
 		jj := 10 + j
-		wp.PushFunc(func() {
+		wp.PushFunc(func() error {
 			println("job", jj, "executed...")
 			responses <- 1
+			return nil
 		})
 		j++
 	}
@@ -35,7 +37,7 @@ func main() {
 		}
 	}
 
-	wp.Close()
+	wp.Stop()
 }
 
 // CustomJob implement the workerful.Job interface (DoTheJob())
@@ -44,8 +46,9 @@ type CustomJob struct {
 	ID        int
 }
 
-func (cj CustomJob) DoTheJob() {
+func (cj CustomJob) F() error {
 	time.Sleep(time.Second)
 	println("job", cj.ID, "executed...")
 	cj.Responses <- 1
+	return nil
 }
