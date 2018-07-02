@@ -1,5 +1,4 @@
-Workerful [![GoDoc](https://godoc.org/github.com/oblq/goms?status.svg)](https://godoc.org/github.com/oblq/workerful)
-========================================================================================================================
+# Workerful [![GoDoc](https://godoc.org/github.com/oblq/goms?status.svg)](https://godoc.org/github.com/oblq/workerful)
 
 **Workerful** is a simple yet powerful worker pool.
 
@@ -8,7 +7,7 @@ Workerful [![GoDoc](https://godoc.org/github.com/oblq/goms?status.svg)](https://
 ### Installation
 
 ```sh
-$ go get github.com/oblq/goms/workerful
+$ go get github.com/oblq/workerful
 ```
 
 ### Init
@@ -17,7 +16,7 @@ Two parameters are required, it is possible to pass the config as a yaml file pa
 
 | Parameter   | Description  | Default
 | :---        |     :---     |     :---
-| queue_size    | Determine the size of the queue. Using `0` will load the default value. | `10000`
+| queue_size    | Determine the size of the queue. Use 0 to have an unbuffered jobQueue channel. | 
 | workers | The number of parallel jobs to be executed. Using `0` will load the default value. | `runtime.NumCPU()`
 
 Get a new instance:
@@ -35,17 +34,21 @@ Get a new instance:
 
 ### Push a job
 
-You can push a simple `func()` or a more complex custom Job (see `workerful.Job` interface).
-Both `PushJob(job Job)` and `PushFunc(job func())` funcs add jobs without blocking (in case you push more jobs than the queue_size). 
+You can push a simple `func() error` or a more complex custom Job (see `workerful.Job` interface).
 
 Push a simple func():
 ```go
-    wp.PushFunc(func() { 
+    wp.PushFunc(func() error { 
+    	println("func executed...")
+    })
+
+    // Non blocking, useful with buffered channels.
+    wp.PushFuncAsync(func() error { 
     	println("func executed...")
     })
 ```
 
-Push a custom job:
+Push a custom job if you need to do pass parameters:
 ```go
     // CustomJob implement the workerful.Job interface (DoTheJob())
     type CustomJob struct {
@@ -61,13 +64,23 @@ Push a custom job:
         	
     responses := make(chan int, 0)
 
-    wp.PushJob(CustomJob{responses, i})
+    wp.PushJob(CustomJob{responses, 1})
+        
+    // Non blocking, useful with buffered channels.
+    wp.PushJobAsync(CustomJob{responses, 1})
 ```
 
-### Graceful shutdown
+### Get status
 
 ```go
-    wp.Close()
+    doneJobs, failedJobs, inQueueJobs := wp.Status()
+```
+
+### Graceful shutdown (and restart)
+
+```go
+    wp.Stop()
+    wp.Restart()
 ```
 
 ## Author
@@ -76,4 +89,4 @@ Push a custom job:
 
 ## License
 
-ReverseProxy is available under the MIT license. See the [LICENSE](./LICENSE) file for more information.
+Workerful is available under the MIT license. See the [LICENSE](./LICENSE) file for more information.
