@@ -40,11 +40,13 @@ Push a simple func():
 ```go
     wp.PushFunc(func() error { 
     	println("func executed...")
+    	return nil
     })
 
     // Non blocking, useful with buffered channels.
     wp.PushFuncAsync(func() error { 
     	println("func executed...")
+        return nil
     })
 ```
 
