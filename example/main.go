@@ -7,32 +7,34 @@ import (
 )
 
 func main() {
+	jobs := 20
+
+	wp := workerful.NewWorkerful("", &workerful.Config{QueueSize: jobs, Workers: 0})
 
 	responses := make(chan int)
 
-	wp := workerful.NewWorkerful("", &workerful.Config{QueueSize: 0, Workers: 0})
-
 	i := 0
-	for i < int(10) {
+	for i < jobs/2 {
 		wp.PushJob(CustomJob{responses, i})
 		i++
 	}
 
 	j := 0
-	for j < int(10) {
+	for j < jobs/2 {
 		jj := 10 + j
 		wp.PushFunc(func() error {
-			println("job", jj, "executed...")
-			responses <- 1
+			responses <- jj
 			return nil
 		})
 		j++
 	}
 
 	count := 0
-	for i := range responses {
-		count += i
-		if count == 20 {
+	for r := range responses {
+		count++
+		println("job", r, "executed...")
+		if count == jobs {
+			println("finished, jobs executed:", count)
 			close(responses)
 		}
 	}
@@ -49,7 +51,6 @@ type CustomJob struct {
 // F execute the job
 func (cj CustomJob) F() error {
 	time.Sleep(time.Second)
-	println("job", cj.ID, "executed...")
-	cj.Responses <- 1
+	cj.Responses <- cj.ID
 	return nil
 }

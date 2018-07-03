@@ -1,3 +1,18 @@
+// Package workerful provides a simple, elegant and yet a powerful
+// implementation of a worker-pool by making use of sync.WaitGroup.
+//
+// An important point:
+// If the jobQueue channel is unbuffered, the sender blocks until the receiver has received the value.
+// If the channel has a buffer, the sender blocks only until the value has been copied to the buffer;
+// if the buffer is full, this means waiting until some receiver has retrieved a value.
+//
+// Said otherwise:
+// When a channel is full, the sender waits for another goroutine to make some room by receiving.
+// You can see an unbuffered channel as an always full one:
+// there must be another goroutine to take what the sender sends.
+//
+// Basically you can't send values to an unbuffered channel
+// if there is not a listener that grab those values in place.
 package workerful
 
 import (
@@ -6,20 +21,20 @@ import (
 	"path/filepath"
 	"runtime"
 	"sync"
+	"sync/atomic"
 
-	"go.uber.org/atomic"
 	"gopkg.in/yaml.v2"
 )
 
-// Job is a job interface, useful if you need to pass parameters or do more complicated stuff
+// Job is a job interface, useful if you need to pass parameters or do more complicated stuff.
 type Job interface {
 	F() error
 }
 
-// SimpleJob is a job func useful for simple operations
+// SimpleJob is a job func useful for simple operations.
 type SimpleJob func() error
 
-// JobQueue is a job queue in which you can append jobs.
+// JobQueue is a job queue in which you can append Job or SimpleJob types.
 type jobQueue chan interface{}
 
 // Config defines the config for workerful.
@@ -32,16 +47,16 @@ type Config struct {
 type Workerful struct {
 	Config *Config
 
-	DoneCount   atomic.Int64
-	FailedCount atomic.Int64
+	DoneCount   uint64
+	FailedCount uint64
 
 	jobQueue     jobQueue
 	workersGroup *sync.WaitGroup
 
-	// closer wait until the number of routines opened by PushFuncAsync() or PushJobAsync(),
-	// to send jobs to the buffered jobQueue, when it is already full, goes to zero before to close the queue.
-	// Necessary to avoid sending jobs in the jobQueue when it has been closed.
-	stopGroup   *sync.WaitGroup
+	// stopGroup wait until the number of routines opened by PushFuncAsync() or PushJobAsync() goes to zero.
+	// Necessary to avoid deadlocks by sending jobs in the jobQueue when it has been already closed.
+	stopGroup *sync.WaitGroup
+	// If true no more jobs can be pushed in the jobQueue.
 	queueClosed bool
 }
 
@@ -50,7 +65,6 @@ var instance *Workerful
 
 // InitShared initialize the shared singleton,
 // workerful also accept no configPath nor Config, the default values will be loaded.
-// It can be used as a goms PackageInitFunc to be loaded automatically.
 func InitShared(configPath string, config interface{}) error {
 	once.Do(func() {
 		if config, ok := config.(*Config); ok {
@@ -72,10 +86,7 @@ func Shared() *Workerful {
 	return instance
 }
 
-// NewWorkerful creates and returns a new workerful instance, and starts a dispatcher to process the queue.
-// Using 0 for maxQueueSize and/or maxWorkers will load the default values,
-// 10000 and the number of CPU cores respectively
-// close(workerful.jobQueue) when finished.
+// NewWorkerful creates and returns a new workerful instance, and starts the workers to process the queue.
 func NewWorkerful(configPath string, config *Config) *Workerful {
 
 	if len(configPath) > 0 {
@@ -112,7 +123,6 @@ func NewWorkerful(configPath string, config *Config) *Workerful {
 
 	// Wait for workers to complete
 	// Wait() blocks until the WaitGroup counter is zero and the channel closed
-	// we don't need it
 	go func() {
 		wp.workersGroup.Wait()
 		println("[workerful] gracefully stopped...")
@@ -124,24 +134,24 @@ func NewWorkerful(configPath string, config *Config) *Workerful {
 func (wp *Workerful) newWorker() {
 	// range over channels only stop after the channel has been closed
 	// wg.Done() then is never called until jobQueue is closed: close(jobQueue)
-	// so we have 'maxWorkers' routines executing jobs in chunks forever
+	// so we have 'workers' routines executing jobs in chunks forever
 	defer wp.workersGroup.Done()
 
 	for job := range wp.jobQueue {
 		switch job.(type) {
 		case Job:
 			if err := job.(Job).F(); err != nil {
-				wp.FailedCount.Inc()
+				atomic.AddUint64(&wp.FailedCount, 1)
 				log.Printf("[workerful] error from job: %s", err.Error())
 			} else {
-				wp.DoneCount.Inc()
+				atomic.AddUint64(&wp.DoneCount, 1)
 			}
 		case SimpleJob:
 			if err := job.(SimpleJob)(); err != nil {
-				wp.FailedCount.Inc()
+				atomic.AddUint64(&wp.FailedCount, 1)
 				log.Printf("[workerful] error from job: %s", err.Error())
 			} else {
-				wp.DoneCount.Inc()
+				atomic.AddUint64(&wp.DoneCount, 1)
 			}
 		default:
 			log.Println("[workerful] Push() func only accept `Job` (see workerful.Job interface) and `func() error` types")
@@ -152,8 +162,8 @@ func (wp *Workerful) newWorker() {
 
 // Stop close the jobQueue, gracefully, it is blocking.
 // Already queued jobs will be processed.
-// It is possible to Stop and (re)Start Workerful at any time.
-// If you continue to send async funcs/jobs after Stop() with a buffered jobQueue
+// It is possible to Stop and Restart Workerful at any time.
+// If you continue to send funcs/jobs after Stop() with a buffered jobQueue
 // it will block until all of the jobs are added to the queue.
 func (wp *Workerful) Stop() {
 	// stopGroup will waint until all jobs are sent to the queue
@@ -164,7 +174,7 @@ func (wp *Workerful) Stop() {
 }
 
 // Restart will launch the workers to process jobs.
-// It is possible to Stop and (re)Start Workerful at any time.
+// It is possible to Stop and Restart Workerful at any time.
 func (wp *Workerful) Restart() {
 	wp.jobQueue = make(jobQueue, wp.Config.QueueSize)
 
@@ -175,7 +185,6 @@ func (wp *Workerful) Restart() {
 		go wp.newWorker()
 	}
 
-	// Create stopper
 	wp.stopGroup = &sync.WaitGroup{}
 	wp.queueClosed = false
 
@@ -191,13 +200,13 @@ func (wp *Workerful) Restart() {
 }
 
 // Status return the number of processed, failed and inQueue jobs.
-func (wp *Workerful) Status() (done int64, failed int64, inQueue int) {
-	return wp.DoneCount.Load(), wp.FailedCount.Load(), len(wp.jobQueue)
+func (wp *Workerful) Status() (done uint64, failed uint64, inQueue int) {
+	return atomic.LoadUint64(&wp.DoneCount), atomic.LoadUint64(&wp.FailedCount), len(wp.jobQueue)
 }
 
 func (wp *Workerful) canPush() bool {
 	if wp.queueClosed {
-		wp.FailedCount.Inc()
+		atomic.AddUint64(&wp.FailedCount, 1)
 		println("[workerful] the queue is closed, can't push a new job")
 		return false
 	}
