@@ -1,18 +1,5 @@
 // Package workerful provides a simple, elegant and yet a powerful
 // implementation of a worker-pool by making use of sync.WaitGroup.
-//
-// An important point:
-// If the jobQueue channel is unbuffered, the sender blocks until the receiver has received the value.
-// If the channel has a buffer, the sender blocks only until the value has been copied to the buffer;
-// if the buffer is full, this means waiting until some receiver has retrieved a value.
-//
-// Said otherwise:
-// When a channel is full, the sender waits for another goroutine to make some room by receiving.
-// You can see an unbuffered channel as an always full one:
-// there must be another goroutine to take what the sender sends.
-//
-// Basically you can't send values to an unbuffered channel
-// if there is not a listener that grab those values in place.
 package workerful
 
 import (
@@ -87,6 +74,19 @@ func Shared() *Workerful {
 }
 
 // New creates and returns a new workerful instance, and starts the workers to process the queue.
+//
+// An important point:
+// If the jobQueue channel is unbuffered, the sender blocks until the receiver has received the value.
+// If the channel has a buffer, the sender blocks only until the value has been copied to the buffer;
+// if the buffer is full, this means waiting until some receiver has retrieved a value.
+//
+// Said otherwise:
+// When a channel is full, the sender waits for another goroutine to make some room by receiving.
+// You can see an unbuffered channel as an always full one:
+// there must be another goroutine to take what the sender sends.
+//
+// Basically you can't send values to an unbuffered channel
+// if there is not a listener that grab those values in place.
 func New(configPath string, config *Config) *Workerful {
 
 	if len(configPath) > 0 {
