@@ -15,13 +15,13 @@ func main() {
 
 	i := 0
 	for i < jobs/2 {
-		wp.PushJob(CustomJob{responses, i})
+		wp.PushJobAsync(CustomJob{responses, i})
 		i++
 	}
 
 	j := 0
 	for j < jobs/2 {
-		jj := 10 + j
+		jj := jobs/2 + j
 		wp.PushFunc(func() error {
 			responses <- jj
 			return nil
@@ -30,9 +30,9 @@ func main() {
 	}
 
 	count := 0
-	for r := range responses {
+	for jobID := range responses {
+		println("job", jobID, "executed...")
 		count++
-		println("job", r, "executed...")
 		if count == jobs {
 			println("finished, jobs executed:", count)
 			close(responses)
@@ -42,7 +42,7 @@ func main() {
 	wp.Stop()
 }
 
-// CustomJob implement the workerful.Job interface (DoTheJob())
+// CustomJob implement the workerful.Job interface (F())
 type CustomJob struct {
 	Responses chan int
 	ID        int
