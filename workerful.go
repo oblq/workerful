@@ -68,14 +68,14 @@ var instance *Workerful
 func InitShared(configPath string, config interface{}) error {
 	once.Do(func() {
 		if config, ok := config.(*Config); ok {
-			instance = NewWorkerful("", config)
+			instance = New("", config)
 			return
 		}
 		if config, ok := config.(Config); ok {
-			instance = NewWorkerful("", &config)
+			instance = New("", &config)
 			return
 		}
-		instance = NewWorkerful(configPath, nil)
+		instance = New(configPath, nil)
 	})
 	return nil
 }
@@ -87,7 +87,7 @@ func Shared() *Workerful {
 }
 
 // NewWorkerful creates and returns a new workerful instance, and starts the workers to process the queue.
-func NewWorkerful(configPath string, config *Config) *Workerful {
+func New(configPath string, config *Config) *Workerful {
 
 	if len(configPath) > 0 {
 		compsConfigPath := filepath.Join(configPath, "workerful.yml")

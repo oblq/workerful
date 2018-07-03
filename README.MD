@@ -21,7 +21,7 @@ Two parameters are required, it is possible to pass the config as a yaml file pa
 
 Get a new instance (with unbuffered jobQueue):
 ```
-    wp := workerful.NewWorkerful("", &workerful.Config{QueueSize: 0, Workers: 0})
+    wp := workerful.New("", &workerful.Config{QueueSize: 0, Workers: 0})
 ```
 
 ...or init the singleton:

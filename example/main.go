@@ -9,7 +9,7 @@ import (
 func main() {
 	jobs := 20
 
-	wp := workerful.NewWorkerful("", &workerful.Config{QueueSize: jobs, Workers: 0})
+	wp := workerful.New("", &workerful.Config{QueueSize: jobs, Workers: 0})
 
 	responses := make(chan int)
 
