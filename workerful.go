@@ -86,7 +86,7 @@ func Shared() *Workerful {
 	return instance
 }
 
-// NewWorkerful creates and returns a new workerful instance, and starts the workers to process the queue.
+// New creates and returns a new workerful instance, and starts the workers to process the queue.
 func New(configPath string, config *Config) *Workerful {
 
 	if len(configPath) > 0 {

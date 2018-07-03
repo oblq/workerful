@@ -22,7 +22,7 @@ func TestBufferedWUnblockingPush(t *testing.T) {
 	jobsNum := 48
 	queueSize := 16
 	workers := 16
-	wp := NewWorkerful("", &Config{queueSize, workers})
+	wp := New("", &Config{queueSize, workers})
 
 	responses := make(chan int, jobsNum)
 	start := time.Now()
@@ -59,7 +59,7 @@ func TestBufferedWBlockingPush(t *testing.T) {
 	jobsNum := 48
 	queueSize := 16
 	workers := 16
-	wp := NewWorkerful("", &Config{queueSize, workers})
+	wp := New("", &Config{queueSize, workers})
 
 	responses := make(chan int, jobsNum)
 	start := time.Now()
@@ -99,7 +99,7 @@ func TestBufferedWBlockingPush(t *testing.T) {
 func TestUnbufferedWBlockingPush(t *testing.T) {
 	jobsNum := 48
 	workers := 16
-	wp := NewWorkerful("", &Config{0, workers})
+	wp := New("", &Config{0, workers})
 
 	responses := make(chan int, jobsNum)
 	start := time.Now()
@@ -139,7 +139,7 @@ func TestUnbufferedWBlockingPush(t *testing.T) {
 func TestStopStart(t *testing.T) {
 	jobsNum := 192
 	workers := 48
-	wp := NewWorkerful("", &Config{jobsNum, workers})
+	wp := New("", &Config{jobsNum, workers})
 
 	var pause time.Duration = 5
 
