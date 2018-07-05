@@ -27,7 +27,10 @@ Get a new instance (with unbuffered jobQueue):
 ...or init the singleton:
 
 ```
-    wp := workerful.InitShared("", &workerful.Config{QueueSize: 0, Workers: 0})
+    err := workerful.InitShared("", &workerful.Config{QueueSize: 0, Workers: 0})
+    if err != nil {
+        log.Fatal(err.Error())
+    }
     // ...then grab the preloaded shared instance from anywhere:
     workerful.Shared()
 ```
@@ -38,13 +41,13 @@ You can push a simple `func() error` or a more complex custom Job (see `workerfu
 
 Push a simple func():
 ```
-    wp.PushFunc(func() error { 
+    workerful.Shared().PushFunc(func() error { 
     	println("func executed...")
     	return nil
     })
 
     // Non blocking, useful with buffered channels.
-    wp.PushFuncAsync(func() error { 
+    workerful.Shared().PushFuncAsync(func() error { 
     	println("func executed...")
         return nil
     })
@@ -65,6 +68,7 @@ Push a custom job if you need to do pass parameters:
         return nil
     }
         	
+    wp := workerful.New("", &workerful.Config{QueueSize: 0, Workers: 0})
     responses := make(chan int)
 
     wp.PushJob(CustomJob{responses, 1})
@@ -86,12 +90,13 @@ Push a custom job if you need to do pass parameters:
 ### Get status
 
 ```
-    doneJobs, failedJobs, inQueueJobs := wp.Status()
+    doneJobs, failedJobs, inQueueJobs := workerful.Shared().Status()
 ```
 
 ### Graceful shutdown (and restart)
 
 ```
+    wp := workerful.New("", &workerful.Config{QueueSize: 0, Workers: 0})
     wp.Stop()
     wp.Restart()
 ```

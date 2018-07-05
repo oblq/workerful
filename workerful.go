@@ -161,10 +161,10 @@ func (wp *Workerful) newWorker() {
 }
 
 // Stop close the jobQueue, gracefully, it is blocking.
-// Already queued jobs will be processed.
 // It is possible to Stop and Restart Workerful at any time.
-// If you continue to send funcs/jobs after Stop() with a buffered jobQueue
-// it will block until all of the jobs are added to the queue.
+// Already queued jobs will be processed.
+// Jobs pushed asynchronously will be added to the queue and processed.
+// It will block until all of the jobs are added to the queue and processed.
 func (wp *Workerful) Stop() {
 	// stopGroup will waint until all jobs are sent to the queue
 	// send a job after the channel has been closed will cause a crash otherwise
@@ -214,8 +214,6 @@ func (wp *Workerful) canPush() bool {
 }
 
 // PushJob is an helper method that add a Job to the queue.
-// With a buffered chan queue (queue_size != 0),
-// when it is full wp.JobQueue <- job block the current routine until it free a space.
 func (wp *Workerful) PushJob(job Job) {
 	if !wp.canPush() {
 		return
@@ -224,8 +222,6 @@ func (wp *Workerful) PushJob(job Job) {
 }
 
 // PushJobAsync is an helper method that add a Job to the queue whithout blocking.
-// With a buffered chan queue (queue_size != 0),
-// when it is full wp.JobQueue <- job does not block the current routine.
 func (wp *Workerful) PushJobAsync(job Job) {
 	if !wp.canPush() {
 		return
@@ -238,8 +234,6 @@ func (wp *Workerful) PushJobAsync(job Job) {
 }
 
 // PushFunc is an helper method that add a func() to the queue.
-// With a buffered chan queue (queue_size != 0),
-// when it is full wp.JobQueue <- job block the current routine until it free a space.
 func (wp *Workerful) PushFunc(job SimpleJob) {
 	if !wp.canPush() {
 		return
@@ -248,8 +242,6 @@ func (wp *Workerful) PushFunc(job SimpleJob) {
 }
 
 // PushFuncAsync is an helper method that add a func() to the queue whithout blocking.
-// With a buffered chan queue (queue_size != 0),
-// when it is full wp.JobQueue <- job does not block the current routine.
 func (wp *Workerful) PushFuncAsync(job SimpleJob) {
 	if !wp.canPush() {
 		return
