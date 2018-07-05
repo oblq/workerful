@@ -28,7 +28,9 @@ Get a new instance (with unbuffered jobQueue):
 ...or init the singleton:
 
 ```
-    log.Fatal(workerful.InitShared("", nil))
+    if err := workerful.InitShared("", nil); err != nil {
+        log.Fatal(err.Error())
+    }
     // ...then grab the preloaded shared instance from anywhere:
     workerful.Shared()
 ```
