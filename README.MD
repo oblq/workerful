@@ -12,8 +12,8 @@ $ go get github.com/oblq/workerful
 
 ### Init
 
-Two parameters are required, it is possible to pass the config as a yaml file path or the workerful.Config struct.
-
+It is possible to pass the config as a yaml file path or the workerful.Config struct or none of those.
+The config struct takes two parameters:
 | Parameter   | Description  | Default
 | :---        |     :---     |     :---
 | queue_size    | Determine the size of the queue. Use 0 to have an unbuffered jobQueue channel. | `0` (unbuffered)
@@ -27,7 +27,7 @@ Get a new instance (with unbuffered jobQueue):
 ...or init the singleton:
 
 ```
-    log.Fatal(workerful.InitShared("", &workerful.Config{0,0}))
+    log.Fatal(workerful.InitShared("", nil))
     // ...then grab the preloaded shared instance from anywhere:
     workerful.Shared()
 ```
