@@ -12,7 +12,7 @@ $ go get github.com/oblq/workerful
 
 ### Init
 
-It is possible to pass the config as a yaml file path, the workerful.Config struct or none of the above (the default values will be loaded.
+It is possible to pass the config as a yaml file path, the workerful.Config struct or none of the above (the default values will be loaded).\
 The config struct takes two parameters:
 
 | Parameter   | Description  | Default
