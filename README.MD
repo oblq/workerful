@@ -2,15 +2,15 @@
 
 **Workerful** is a simple yet powerful worker pool.
 
-### Getting Started
+## Getting Started
 
-### Installation
+#### Install
 
 ```sh
 $ go get github.com/oblq/workerful
 ```
 
-### Init
+#### Init
 
 It is possible to pass the config as a yaml file path, the workerful.Config struct or none of the above (the default values will be loaded).\
 The config struct takes two parameters:
@@ -35,7 +35,7 @@ Get a new instance (with unbuffered jobQueue):
     workerful.Shared()
 ```
 
-### Push a job
+#### Push a job
 
 You can push a simple `func() error` or a more complex custom Job (see `workerful.Job` interface).
 
@@ -87,16 +87,16 @@ Push a custom job if you need to do pass parameters:
     wp.Stop()
 ```
 
-### Get status
+#### Get status
 
 ```
     doneJobs, failedJobs, inQueueJobs := workerful.Shared().Status()
 ```
 
-### Graceful shutdown (and restart)
+#### Graceful shutdown (and restart)
 
 ```
-    wp := workerful.New("", &workerful.Config{QueueSize: 0, Workers: 0})
+    wp := workerful.New("./workerful.yml", nil)
     wp.Stop()
     wp.Restart()
 ```
