@@ -119,13 +119,13 @@ func New(configPath string, config *Config) *Workerful {
 		go wp.newWorker()
 	}
 
-	println("[workerful] started...")
+	//println("[workerful] started...")
 
 	// Wait for workers to complete
 	// Wait() blocks until the WaitGroup counter is zero and the channel closed
 	go func() {
 		wp.workersGroup.Wait()
-		println("[workerful] gracefully stopped...")
+		//println("[workerful] gracefully stopped...")
 	}()
 
 	return wp
@@ -188,14 +188,14 @@ func (wp *Workerful) Restart() {
 	wp.stopGroup = &sync.WaitGroup{}
 	wp.queueClosed = false
 
-	println("[workerful] restarted...")
+	//println("[workerful] restarted...")
 
 	// Wait for workers to complete
 	// Wait() blocks until the WaitGroup counter is zero and the channel closed
 	// we don't need it
 	go func() {
 		wp.workersGroup.Wait()
-		println("[workerful] gracefully stopped...")
+		//println("[workerful] gracefully stopped...")
 	}()
 }
 
