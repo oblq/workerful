@@ -132,7 +132,7 @@ func TestUnbufferedWBlockingPush(t *testing.T) {
 	}
 
 	if timeElapsed > (timeNeeded + time.Second) {
-		t.Errorf("Time elapsed (%f) too long than (time needed + 1 sec): %f, something is wrong", timeElapsed.Seconds(), (timeNeeded + time.Second).Seconds())
+		t.Errorf("Time elapsed (%f) too long than (time needed): %f, something is wrong", timeElapsed.Seconds(), (timeNeeded + time.Second).Seconds())
 	}
 }
 
@@ -159,7 +159,7 @@ func TestStopStart(t *testing.T) {
 
 	wp.Stop()
 	time.Sleep(pause * time.Second)
-	wp.Restart()
+	wp.Start()
 
 	i = 0
 	for i < int(jobsNum/2) {
@@ -189,7 +189,7 @@ func TestStopStart(t *testing.T) {
 	}
 
 	if timeElapsed > (timeNeeded - 1*time.Second) {
-		t.Errorf("Time elapsed (%f) too long than (time needed + 1 sec): %f, something is wrong", timeElapsed.Seconds(), timeNeeded.Seconds())
+		t.Errorf("Time elapsed (%f) too long than (time needed): %f, something is wrong", timeElapsed.Seconds(), timeNeeded.Seconds())
 	}
 
 }

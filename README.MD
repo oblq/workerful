@@ -25,13 +25,9 @@ Get a new instance (with unbuffered jobQueue):
     wp := workerful.New("", &workerful.Config{QueueSize: 0, Workers: 0})
 ```
 
-...or init the singleton:
+...or grab the singleton (preloaded with the default values):
 
 ```
-    if err := workerful.InitShared("", nil); err != nil {
-        log.Fatal(err.Error())
-    }
-    // ...then grab the preloaded shared instance from anywhere:
     workerful.Shared()
 ```
 
@@ -46,14 +42,14 @@ Push a simple func():
     	return nil
     })
 
-    // Non blocking, useful with buffered channels.
+    // Non blocking.
     workerful.Shared().PushFuncAsync(func() error { 
     	println("func executed...")
         return nil
     })
 ```
 
-Push a custom job if you need to do pass parameters:
+Push a custom job if you need to pass parameters or for more complicated stuff:
 ```
     // CustomJob implement the workerful.Job interface (F())
     type CustomJob struct {
@@ -67,13 +63,14 @@ Push a custom job if you need to do pass parameters:
         cj.Responses <- 1
         return nil
     }
-        	
-    wp := workerful.New("", &workerful.Config{QueueSize: 0, Workers: 0})
+        
+    // Default values.	
+    wp := workerful.New("", nil)
     responses := make(chan int)
 
     wp.PushJob(CustomJob{responses, 1})
         
-    // Non blocking, useful with buffered channels.
+    // Non blocking.
     wp.PushJobAsync(CustomJob{responses, 2})
     
     count := 0
@@ -90,7 +87,7 @@ Push a custom job if you need to do pass parameters:
 #### Get status
 
 ```
-    doneJobs, failedJobs, inQueueJobs := workerful.Shared().Status()
+    doneJobs, failedJobs, inQueueJobs := wp.Status()
 ```
 
 #### Graceful shutdown (and restart)
@@ -98,7 +95,7 @@ Push a custom job if you need to do pass parameters:
 ```
     wp := workerful.New("./workerful.yml", nil)
     wp.Stop()
-    wp.Restart()
+    wp.Start()
 ```
 
 ## Author
