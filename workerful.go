@@ -105,7 +105,6 @@ func (wp *Workerful) Go2Box(configPath string) error {
 	} else {
 		config = &Config{0, 0}
 	}
-
 	wp.setConfigAndStart(*config)
 	return nil
 }
