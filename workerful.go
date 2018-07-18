@@ -187,6 +187,7 @@ func (wp *Workerful) Status() (done uint64, failed uint64, inQueue int) {
 	return atomic.LoadUint64(&wp.doneCount), atomic.LoadUint64(&wp.failedCount), len(wp.jobQueue)
 }
 
+// check if jobQueue is closed
 func (wp *Workerful) canPush() bool {
 	if wp.queueClosed {
 		atomic.AddUint64(&wp.failedCount, 1)
