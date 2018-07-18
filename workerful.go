@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"path/filepath"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -48,18 +47,6 @@ type Workerful struct {
 	queueClosed bool
 }
 
-var once sync.Once
-var instance *Workerful
-
-// Shared returns the workerful singleton.
-//  workerful.Shared().PushAsync(func() { println("test") })
-func Shared() *Workerful {
-	once.Do(func() {
-		instance = New("", nil)
-	})
-	return instance
-}
-
 // New creates and returns a new workerful instance, and starts the workers to process the queue.
 //
 // An important point:
@@ -78,8 +65,7 @@ func Shared() *Workerful {
 // Also accept no configPath nor config, the default values will be loaded.
 func New(configPath string, config *Config) *Workerful {
 	if len(configPath) > 0 {
-		compsConfigPath := filepath.Join(configPath, "workerful.yml")
-		if compsConfigFile, err := ioutil.ReadFile(compsConfigPath); err != nil {
+		if compsConfigFile, err := ioutil.ReadFile(configPath); err != nil {
 			log.Fatalln("Wrong config path", err)
 		} else if err = yaml.Unmarshal(compsConfigFile, &config); err != nil {
 			log.Fatalln("Can't unmarshal config file", err)

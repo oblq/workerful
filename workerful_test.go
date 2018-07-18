@@ -56,10 +56,10 @@ func TestBufferedWUnblockingPush(t *testing.T) {
 }
 
 func TestBufferedWBlockingPush(t *testing.T) {
-	jobsNum := 48
-	queueSize := 16
-	workers := 16
-	wp := New("", &Config{queueSize, workers})
+	jobsNum := 24
+	//queueSize := 16
+	//workers := 16
+	wp := New("./workerful.yml", nil)
 
 	responses := make(chan int, jobsNum)
 	start := time.Now()
@@ -85,7 +85,7 @@ func TestBufferedWBlockingPush(t *testing.T) {
 	wp.Stop()
 
 	timeElapsed := time.Since(start)
-	timeNeeded := time.Duration(float64(jobsNum)/float64(workers)) * time.Second
+	timeNeeded := time.Duration(float64(jobsNum)/float64(wp.Config.Workers)) * time.Second
 
 	if timeElapsed < timeNeeded {
 		t.Errorf("Time elapsed (%f) too short (time needed: %f), something is wrong", timeElapsed.Seconds(), timeNeeded.Seconds())
@@ -191,5 +191,15 @@ func TestStopStart(t *testing.T) {
 	if timeElapsed > (timeNeeded - 1*time.Second) {
 		t.Errorf("Time elapsed (%f) too long than (time needed): %f, something is wrong", timeElapsed.Seconds(), timeNeeded.Seconds())
 	}
+}
 
+// Test nil config, push after
+func TestInitNilConfig(t *testing.T) {
+	wp := New("", nil)
+	doneJobs, failedJobs, inQueueJobs := wp.Status()
+	println(doneJobs, failedJobs, inQueueJobs)
+	wp.Stop()
+	wp.PushFuncAsync(func() error {
+		return nil
+	})
 }

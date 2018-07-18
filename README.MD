@@ -1,9 +1,10 @@
 # Workerful
 
-[![GoDoc](https://godoc.org/github.com/oblq/workerful?status.svg)](https://godoc.org/github.com/oblq/workerful)
 [![Build Status](https://travis-ci.org/oblq/workerful.svg?branch=master)](https://travis-ci.org/oblq/workerful)
+[![codecov](https://codecov.io/gh/oblq/workerful/branch/master/graph/badge.svg)](https://codecov.io/gh/oblq/workerful)
 [![Go Report Card](https://goreportcard.com/badge/github.com/oblq/workerful)](https://goreportcard.com/report/github.com/oblq/workerful)
 ![dependencies Status](https://img.shields.io/badge/dependencies-none-brightgreen.svg)
+[![GoDoc](https://godoc.org/github.com/oblq/workerful?status.svg)](https://godoc.org/github.com/oblq/workerful)
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 
 **Workerful** is a simple yet powerful worker pool.
@@ -33,25 +34,19 @@ Get a new instance (with unbuffered jobQueue):
     wp := workerful.New("", &workerful.Config{QueueSize: 0, Workers: 0})
 ```
 
-...or grab the singleton (preloaded with the default values):
-
-```
-    workerful.Shared()
-```
-
 #### Push a job
 
 You can push a simple `func() error` or a more complex custom Job (see `workerful.Job` interface).
 
 Push a simple func():
 ```
-    workerful.Shared().PushFunc(func() error { 
+    wp.PushFunc(func() error { 
     	println("func executed...")
     	return nil
     })
 
     // Non blocking.
-    workerful.Shared().PushFuncAsync(func() error { 
+    wp.PushFuncAsync(func() error { 
     	println("func executed...")
         return nil
     })
