@@ -1,10 +1,9 @@
 package workerful
 
 import (
+	"errors"
 	"testing"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // Job implement the job interface
