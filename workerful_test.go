@@ -3,6 +3,8 @@ package workerful
 import (
 	"testing"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 // Job implement the job interface
@@ -193,13 +195,47 @@ func TestStopStart(t *testing.T) {
 	}
 }
 
-// Test nil config, push after
+// Job implement the job interface
+type CustomJob2 struct {
+	ID int
+}
+
+func (mj CustomJob2) F() error {
+	return nil
+}
+
+// Job implement the job interface
+type CustomJobErr struct {
+	ID int
+}
+
+func (mj CustomJobErr) F() error {
+	return errors.New("test error")
+}
+
+// Test nil config, push after stop()
 func TestInitNilConfig(t *testing.T) {
 	wp := New("", nil)
 	doneJobs, failedJobs, inQueueJobs := wp.Status()
 	println(doneJobs, failedJobs, inQueueJobs)
+	wp.PushJob(CustomJob2{1})
+	wp.PushJob(CustomJobErr{1})
 	wp.Stop()
+	wp.PushJobAsync(CustomJob2{1})
+	wp.PushJob(CustomJob2{1})
 	wp.PushFuncAsync(func() error {
 		return nil
 	})
+	wp.PushFunc(func() error {
+		return nil
+	})
+}
+
+func TestGo2Box(t *testing.T) {
+	wp := New("", nil)
+	wp.Go2Box("./workerful.yml")
+	wp.PushFunc(func() error {
+		return errors.New("test error")
+	})
+	wp.Stop()
 }
