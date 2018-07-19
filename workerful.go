@@ -79,8 +79,8 @@ func New(configPath string, config *Config) *Workerful {
 	return wp
 }
 
-// Go2Box is the https://github.com/oblq/sprbox interface implementation.
-func (wp *Workerful) Go2Box(configPath string) error {
+// SBConfig is the https://github.com/oblq/sprbox interface implementation.
+func (wp *Workerful) SBConfig(configPath string) error {
 	var config *Config
 	if len(configPath) > 0 {
 		if compsConfigFile, err := ioutil.ReadFile(configPath); err != nil {
