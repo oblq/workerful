@@ -44,7 +44,7 @@ type Workerful struct {
 	// Necessary to avoid deadlocks by sending jobs in the jobQueue when it has been already closed.
 	stopGroup *sync.WaitGroup
 	// If true no more jobs can be pushed in the jobQueue.
-	queueClosed bool
+	blockPush bool
 }
 
 // New creates and returns a new workerful instance, and starts the workers to process the queue.
@@ -104,31 +104,8 @@ func (wp *Workerful) setConfigAndStart(config Config) {
 	}
 
 	wp.Config = config
-	wp.Start()
-}
 
-// Stop close the jobQueue, gracefully, it is blocking.
-// It is possible to Stop and Restart Workerful at any time.
-// Already queued jobs will be processed.
-// Jobs pushed asynchronously will be added to the queue and processed.
-// It will block until all of the jobs are added to the queue and processed.
-func (wp *Workerful) Stop() {
-	// stopGroup will wait until all jobs are sent to the queue
-	// sending a job after the channel has been closed will cause a crash otherwise
-	if wp.stopGroup != nil && wp.jobQueue != nil {
-		wp.stopGroup.Wait()
-	}
-
-	wp.queueClosed = true
-
-	if wp.jobQueue != nil {
-		close(wp.jobQueue)
-	}
-}
-
-// Start will launch the workers to process jobs.
-// It is possible to Stop and Restart Workerful at any time.
-func (wp *Workerful) Start() {
+	// Start
 	wp.jobQueue = make(jobQueue, wp.Config.QueueSize)
 
 	// Create workers
@@ -139,7 +116,7 @@ func (wp *Workerful) Start() {
 	}
 
 	wp.stopGroup = &sync.WaitGroup{}
-	wp.queueClosed = false
+	wp.blockPush = false
 
 	//println("[workerful] restarted...")
 
@@ -150,6 +127,23 @@ func (wp *Workerful) Start() {
 		wp.workersGroup.Wait()
 		//println("[workerful] gracefully stopped...")
 	}()
+}
+
+// Stop close the jobQueue, gracefully, it is blocking.
+// It is possible to Stop and Restart Workerful at any time.
+// Already queued jobs will be processed.
+// Jobs pushed asynchronously will be added to the queue and processed.
+// It will block until all of the jobs are added to the queue and processed.
+func (wp *Workerful) Stop() {
+	// Disable pushing...
+	wp.blockPush = true
+
+	// stopGroup will wait until all jobs are sent to the queue
+	// sending a job after the channel has been closed will cause a crash otherwise
+	if wp.stopGroup != nil && wp.jobQueue != nil {
+		wp.stopGroup.Wait()
+		close(wp.jobQueue)
+	}
 }
 
 // newWorker creates a new worker
@@ -189,7 +183,7 @@ func (wp *Workerful) Status() (done uint64, failed uint64, inQueue int) {
 
 // check if jobQueue is closed
 func (wp *Workerful) canPush() bool {
-	if wp.queueClosed {
+	if wp.blockPush {
 		atomic.AddUint64(&wp.failedCount, 1)
 		println("[workerful] the queue is closed, can't push a new job")
 		return false

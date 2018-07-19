@@ -160,7 +160,7 @@ func TestStopStart(t *testing.T) {
 
 	wp.Stop()
 	time.Sleep(pause * time.Second)
-	wp.Start()
+	wp = New("", &Config{jobsNum, workers})
 
 	i = 0
 	for i < int(jobsNum/2) {
@@ -230,9 +230,9 @@ func TestInitNilConfig(t *testing.T) {
 	})
 }
 
-func TestGo2Box(t *testing.T) {
-	wp := New("", nil)
-	wp.Go2Box("./workerful.yml")
+func TestSBConfig(t *testing.T) {
+	wp := &Workerful{}
+	wp.SBConfig("./workerful.yml")
 	wp.PushFunc(func() error {
 		return errors.New("test error")
 	})
