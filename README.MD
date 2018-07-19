@@ -39,64 +39,64 @@ You can push a simple `func() error` or a more complex custom Job (see `workerfu
 
 Push a simple func:
 ```go
-    wp.PushFunc(func() error { 
-    	println("func executed...")
-    	return nil
-    })
+wp.PushFunc(func() error { 
+    println("func executed...")
+    return nil
+})
 
-    // Non blocking.
-    wp.PushFuncAsync(func() error { 
-    	println("func executed...")
-        return nil
-    })
+// Non blocking.
+wp.PushFuncAsync(func() error { 
+    println("func executed...")
+    return nil
+})
 ```
 
 Push a custom job if you need to pass parameters or for more complicated stuff:
 ```go
-    // CustomJob implement the workerful.Job interface (F())
-    type CustomJob struct {
-        Responses chan int
-        ID        int
-    }
-    
-    func (cj CustomJob) F() error {
-        time.Sleep(time.Second)
-        println("job", cj.ID, "executed...")
-        cj.Responses <- 1
-        return nil
-    }
-        
-    // Default values.	
-    wp := workerful.New("", nil)
-    responses := make(chan int)
+// CustomJob implement the workerful.Job interface (F())
+type CustomJob struct {
+    Responses chan int
+    ID        int
+}
 
-    wp.PushJob(CustomJob{responses, 1})
-        
-    // Non blocking.
-    wp.PushJobAsync(CustomJob{responses, 2})
-    
-    count := 0
-    for i := range responses {
-        count += i
-        if count == 2 {
-            close(responses)
-        }
-    }
+func (cj CustomJob) F() error {
+    time.Sleep(time.Second)
+    println("job", cj.ID, "executed...")
+    cj.Responses <- 1
+    return nil
+}
 
-    wp.Stop()
+// Default values.	
+wp := workerful.New("", nil)
+responses := make(chan int)
+
+wp.PushJob(CustomJob{responses, 1})
+
+// Non blocking.
+wp.PushJobAsync(CustomJob{responses, 2})
+
+count := 0
+for i := range responses {
+    count += i
+    if count == 2 {
+        close(responses)
+    }
+}
+
+wp.Stop()
 ```
 
 ## Get status
 
 ```go
-    doneJobs, failedJobs, inQueueJobs := wp.Status()
+doneJobs, failedJobs, inQueueJobs := wp.Status()
 ```
 
 ## Graceful shutdown
 
 ```go
-    wp := workerful.New("./workerful.yml", nil)
-    wp.Stop()
+wp := workerful.New("./workerful.yml", nil)
+wp.Stop()
 ```
 
 ## Author
