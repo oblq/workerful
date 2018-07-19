@@ -3,6 +3,8 @@ package main
 import (
 	"time"
 
+	"sync"
+
 	"github.com/oblq/workerful"
 )
 
@@ -11,11 +13,12 @@ func main() {
 
 	wp := workerful.New("", &workerful.Config{QueueSize: jobs, Workers: 0})
 
-	responses := make(chan int)
+	wg := sync.WaitGroup{}
+	wg.Add(jobs)
 
 	i := 0
 	for i < jobs/2 {
-		wp.PushJobAsync(CustomJob{responses, i})
+		wp.PushJobAsync(CustomJob{&wg, i})
 		i++
 	}
 
@@ -23,34 +26,29 @@ func main() {
 	for j < jobs/2 {
 		jj := jobs/2 + j
 		wp.PushFunc(func() error {
-			responses <- jj
+			time.Sleep(time.Second)
+			println("job", jj, "executed...")
+			wg.Done()
 			return nil
 		})
 		j++
 	}
 
-	count := 0
-	for jobID := range responses {
-		println("job", jobID, "executed...")
-		count++
-		if count == jobs {
-			println("finished, jobs executed:", count)
-			close(responses)
-		}
-	}
-
+	wg.Wait()
+	println("finished, jobs executed:", jobs)
 	wp.Stop()
 }
 
 // CustomJob implement the workerful.Job interface (F())
 type CustomJob struct {
-	Responses chan int
-	ID        int
+	WG *sync.WaitGroup
+	ID int
 }
 
 // F execute the job
 func (cj CustomJob) F() error {
 	time.Sleep(time.Second)
-	cj.Responses <- cj.ID
+	println("job", cj.ID, "executed...")
+	cj.WG.Done()
 	return nil
 }

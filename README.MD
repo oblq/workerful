@@ -55,34 +55,30 @@ Push a custom job if you need to pass parameters or for more complicated stuff:
 ```go
 // CustomJob implement the workerful.Job interface (F())
 type CustomJob struct {
-    Responses chan int
-    ID        int
+    WG  *sync.WaitGroup
+    ID  int
 }
 
 func (cj CustomJob) F() error {
     time.Sleep(time.Second)
     println("job", cj.ID, "executed...")
-    cj.Responses <- 1
+    cj.WG.Done()
     return nil
 }
-
-// Default values.	
+    
 wp := workerful.New("", nil)
-responses := make(chan int)
 
-wp.PushJob(CustomJob{responses, 1})
+waitGroup := sync.WaitGroup{}
+waitGroup.Add(2)
 
+wp.PushJob(CustomJob{&waitGroup, 1})
+    
 // Non blocking.
-wp.PushJobAsync(CustomJob{responses, 2})
+wp.PushJobAsync(CustomJob{&waitGroup, 2})
 
-count := 0
-for i := range responses {
-    count += i
-    if count == 2 {
-        close(responses)
-    }
-}
+waitGroup.Wait()
 
+println("finished")
 wp.Stop()
 ```
 
