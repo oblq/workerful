@@ -7,10 +7,9 @@
 ![dependencies Status](https://img.shields.io/badge/dependencies-none-brightgreen.svg)
 [![GoDoc](https://godoc.org/github.com/oblq/workerful?status.svg)](https://godoc.org/github.com/oblq/workerful)
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
+[![sprbox](https://img.shields.io/badge/sprbox-ready-green.svg)](https://github.com/oblq/sprbox)  
 
 **Workerful** is a minimal yet powerful worker-pool implementation with some helper funcs for a simple usage.
-
-Compatible with [sprbox](https://github.com/oblq/sprbox).
 
 ## Install
 
