@@ -66,7 +66,7 @@ type Workerful struct {
 func New(configPath string, config *Config) *Workerful {
 	if len(configPath) > 0 {
 		if err := sprbox.LoadConfig(&config, configPath); err != nil {
-			fmt.Errorf("unable to load config: %v", err)
+			fmt.Printf("unable to load config: %v", err)
 		}
 	} else if config == nil {
 		config = &Config{0, 0}

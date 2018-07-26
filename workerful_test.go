@@ -229,12 +229,3 @@ func TestInitNilConfig(t *testing.T) {
 		return nil
 	})
 }
-
-func TestSBConfig(t *testing.T) {
-	wp := &Workerful{}
-	wp.SBConfig("./workerful.yml")
-	wp.PushFunc(func() error {
-		return errors.New("test error")
-	})
-	wp.Stop()
-}
