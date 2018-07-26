@@ -3,14 +3,14 @@
 package workerful
 
 import (
-	"fmt"
-	"io/ioutil"
 	"log"
 	"runtime"
 	"sync"
 	"sync/atomic"
 
-	"gopkg.in/yaml.v2"
+	"fmt"
+
+	"github.com/oblq/sprbox"
 )
 
 // Job is a job interface, useful if you need to pass parameters or do more complicated stuff.
@@ -26,13 +26,13 @@ type jobQueue chan interface{}
 
 // Config defines the config for workerful.
 type Config struct {
-	QueueSize int `yaml:"queue_size"`
-	Workers   int `yaml:"workers"`
+	QueueSize int
+	Workers   int
 }
 
 // Workerful is the workerful instance type.
 type Workerful struct {
-	Config Config
+	Config *Config
 
 	doneCount   uint64
 	failedCount uint64
@@ -65,37 +65,27 @@ type Workerful struct {
 // Also accept no configPath nor config, the default values will be loaded.
 func New(configPath string, config *Config) *Workerful {
 	if len(configPath) > 0 {
-		if compsConfigFile, err := ioutil.ReadFile(configPath); err != nil {
-			log.Fatalln("Wrong config path", err)
-		} else if err = yaml.Unmarshal(compsConfigFile, &config); err != nil {
-			log.Fatalln("Can't unmarshal config file", err)
+		if err := sprbox.LoadConfig(&config, configPath); err != nil {
+			fmt.Errorf("unable to load config: %v", err)
 		}
 	} else if config == nil {
 		config = &Config{0, 0}
 	}
 
 	wp := &Workerful{}
-	wp.setConfigAndStart(*config)
+	wp.setConfigAndStart(config)
 	return wp
 }
 
 // SBConfig is the https://github.com/oblq/sprbox interface implementation.
-func (wp *Workerful) SBConfig(configPath string) error {
+func (wp *Workerful) SBConfig(configData []byte) (err error) {
 	var config *Config
-	if len(configPath) > 0 {
-		if compsConfigFile, err := ioutil.ReadFile(configPath); err != nil {
-			return fmt.Errorf("wrong config path: %s", err.Error())
-		} else if err = yaml.Unmarshal(compsConfigFile, &config); err != nil {
-			return fmt.Errorf("can't unmarshal config file: %s", err.Error())
-		}
-	} else {
-		config = &Config{0, 0}
-	}
-	wp.setConfigAndStart(*config)
-	return nil
+	err = sprbox.Unmarshal(configData, &config)
+	wp.setConfigAndStart(config)
+	return
 }
 
-func (wp *Workerful) setConfigAndStart(config Config) {
+func (wp *Workerful) setConfigAndStart(config *Config) {
 	wp.Stop()
 
 	if config.Workers == 0 {
