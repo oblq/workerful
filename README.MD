@@ -4,7 +4,6 @@
 [![Build Status](https://travis-ci.org/oblq/workerful.svg?branch=master)](https://travis-ci.org/oblq/workerful)
 [![codecov](https://codecov.io/gh/oblq/workerful/branch/master/graph/badge.svg)](https://codecov.io/gh/oblq/workerful)
 [![Go Report Card](https://goreportcard.com/badge/github.com/oblq/workerful)](https://goreportcard.com/report/github.com/oblq/workerful)
-![dependencies Status](https://img.shields.io/badge/dependencies-none-brightgreen.svg)
 [![GoDoc](https://godoc.org/github.com/oblq/workerful?status.svg)](https://godoc.org/github.com/oblq/workerful)
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 [![sprbox](https://img.shields.io/badge/sprbox-ready-green.svg)](https://github.com/oblq/sprbox)  

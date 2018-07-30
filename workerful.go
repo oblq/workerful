@@ -65,7 +65,10 @@ type Workerful struct {
 // Also accept no configPath nor config, the default values will be loaded.
 func New(configPath string, config *Config) *Workerful {
 	if len(configPath) > 0 {
-		if err := sprbox.LoadConfig(&config, configPath); err != nil {
+		if config == nil {
+			config = &Config{}
+		}
+		if err := sprbox.LoadConfig(config, configPath); err != nil {
 			fmt.Printf("unable to load config: %v", err)
 		}
 	} else if config == nil {
