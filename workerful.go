@@ -77,8 +77,8 @@ func New(configPath string, config *Config) *Workerful {
 	return wp
 }
 
-// SBConfig is the https://github.com/oblq/sprbox interface implementation.
-func (wp *Workerful) SBConfig(configData []byte) (err error) {
+// SpareConfig is the https://github.com/oblq/sprbox 'configurable' interface implementation.
+func (wp *Workerful) SpareConfig(configData []byte) (err error) {
 	var config *Config
 	err = sprbox.Unmarshal(configData, &config)
 	wp.setConfigAndStart(config)
