@@ -26,8 +26,8 @@ type jobQueue chan interface{}
 
 // Config defines the config for workerful.
 type Config struct {
-	QueueSize int
-	Workers   int
+	QueueSize int `yaml:"QueueSize"`
+	Workers   int `yaml:"Workers"`
 }
 
 // Workerful is the workerful instance type.
@@ -89,8 +89,6 @@ func (wp *Workerful) SpareConfig(configData []byte) (err error) {
 }
 
 func (wp *Workerful) setConfigAndStart(config *Config) {
-	wp.Stop()
-
 	if config.Workers == 0 {
 		config.Workers = runtime.NumCPU()
 		runtime.GOMAXPROCS(config.Workers)
