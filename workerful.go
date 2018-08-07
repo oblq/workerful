@@ -81,9 +81,17 @@ func New(configPath string, config *Config) *Workerful {
 }
 
 // SpareConfig is the https://github.com/oblq/sprbox 'configurable' interface implementation.
-func (wp *Workerful) SpareConfig(configData []byte) (err error) {
+func (wp *Workerful) SpareConfig(configFiles []string) (err error) {
 	var config *Config
-	err = sprbox.Unmarshal(configData, &config)
+	err = sprbox.LoadConfig(&config, configFiles...)
+	wp.setConfigAndStart(config)
+	return
+}
+
+// SpareConfigBytes is the https://github.com/oblq/sprbox 'configurableInCollection' interface implementation.
+func (wp *Workerful) SpareConfigBytes(configBytes []byte) (err error) {
+	var config *Config
+	err = sprbox.Unmarshal(configBytes, &config)
 	wp.setConfigAndStart(config)
 	return
 }
