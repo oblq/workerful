@@ -3,12 +3,10 @@
 package workerful
 
 import (
-	"log"
+	"fmt"
 	"runtime"
 	"sync"
 	"sync/atomic"
-
-	"fmt"
 
 	"github.com/oblq/sprbox"
 )
@@ -81,19 +79,23 @@ func New(configPath string, config *Config) *Workerful {
 }
 
 // SpareConfig is the https://github.com/oblq/sprbox 'configurable' interface implementation.
-func (wp *Workerful) SpareConfig(configFiles []string) (err error) {
+func (wp *Workerful) SpareConfig(configFiles []string) error {
 	var config *Config
-	err = sprbox.LoadConfig(&config, configFiles...)
+	if err := sprbox.LoadConfig(&config, configFiles...); err != nil {
+		return err
+	}
 	wp.setConfigAndStart(config)
-	return
+	return nil
 }
 
 // SpareConfigBytes is the https://github.com/oblq/sprbox 'configurableInCollection' interface implementation.
-func (wp *Workerful) SpareConfigBytes(configBytes []byte) (err error) {
+func (wp *Workerful) SpareConfigBytes(configBytes []byte) error {
 	var config *Config
-	err = sprbox.Unmarshal(configBytes, &config)
+	if err := sprbox.Unmarshal(configBytes, &config); err != nil {
+		return err
+	}
 	wp.setConfigAndStart(config)
-	return
+	return nil
 }
 
 func (wp *Workerful) setConfigAndStart(config *Config) {
@@ -157,19 +159,19 @@ func (wp *Workerful) newWorker() {
 		case Job:
 			if err := job.(Job).F(); err != nil {
 				atomic.AddUint64(&wp.failedCount, 1)
-				log.Printf("[workerful] error from job: %s", err.Error())
+				fmt.Printf("[workerful] error from job: %s", err.Error())
 			} else {
 				atomic.AddUint64(&wp.doneCount, 1)
 			}
 		case SimpleJob:
 			if err := job.(SimpleJob)(); err != nil {
 				atomic.AddUint64(&wp.failedCount, 1)
-				log.Printf("[workerful] error from job: %s", err.Error())
+				fmt.Printf("[workerful] error from job: %s", err.Error())
 			} else {
 				atomic.AddUint64(&wp.doneCount, 1)
 			}
 		default:
-			log.Println("[workerful] Push() func only accept `Job` and `SimpleJob` (func() error) types")
+			fmt.Println("[workerful] Push() func only accept `Job` and `SimpleJob` (func() error) types")
 			continue
 		}
 	}
