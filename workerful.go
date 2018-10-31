@@ -24,8 +24,8 @@ type jobQueue chan interface{}
 
 // Config defines the config for workerful.
 type Config struct {
-	QueueSize int `yaml:"QueueSize"`
-	Workers   int `yaml:"Workers"`
+	QueueSize int
+	Workers   int
 }
 
 // Workerful is the workerful instance type.
@@ -62,49 +62,43 @@ type Workerful struct {
 //
 // Also accept no configPath nor config, the default values will be loaded.
 func New(configPath string, config *Config) *Workerful {
+	wp := &Workerful{Config: &Config{0, 0}}
+
 	if len(configPath) > 0 {
-		if config == nil {
-			config = &Config{}
+		if err := sprbox.LoadConfig(&wp.Config, configPath); err != nil {
+			fmt.Printf("load config error: %v", err)
 		}
-		if err := sprbox.LoadConfig(config, configPath); err != nil {
-			fmt.Printf("unable to load config: %v", err)
-		}
-	} else if config == nil {
-		config = &Config{0, 0}
+	} else if config != nil {
+		wp.Config = config
 	}
 
-	wp := &Workerful{}
-	wp.setConfigAndStart(config)
+	wp.configAndStart()
 	return wp
 }
 
 // SpareConfig is the https://github.com/oblq/sprbox 'configurable' interface implementation.
 func (wp *Workerful) SpareConfig(configFiles []string) error {
-	var config *Config
-	if err := sprbox.LoadConfig(&config, configFiles...); err != nil {
+	if err := sprbox.LoadConfig(&wp.Config, configFiles...); err != nil {
 		return err
 	}
-	wp.setConfigAndStart(config)
+	wp.configAndStart()
 	return nil
 }
 
 // SpareConfigBytes is the https://github.com/oblq/sprbox 'configurableInCollection' interface implementation.
 func (wp *Workerful) SpareConfigBytes(configBytes []byte) error {
-	var config *Config
-	if err := sprbox.Unmarshal(configBytes, &config); err != nil {
+	if err := sprbox.Unmarshal(configBytes, &wp.Config); err != nil {
 		return err
 	}
-	wp.setConfigAndStart(config)
+	wp.configAndStart()
 	return nil
 }
 
-func (wp *Workerful) setConfigAndStart(config *Config) {
-	if config.Workers == 0 {
-		config.Workers = runtime.NumCPU()
-		runtime.GOMAXPROCS(config.Workers)
+func (wp *Workerful) configAndStart() {
+	if wp.Config.Workers == 0 {
+		wp.Config.Workers = runtime.NumCPU()
+		runtime.GOMAXPROCS(wp.Config.Workers)
 	}
-
-	wp.Config = config
 
 	// Start
 	wp.jobQueue = make(jobQueue, wp.Config.QueueSize)
