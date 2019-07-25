@@ -95,9 +95,10 @@ func (wp *Workerful) SpareConfigBytes(configBytes []byte) error {
 }
 
 func (wp *Workerful) configAndStart() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	if wp.Config.Workers == 0 {
 		wp.Config.Workers = runtime.NumCPU()
-		runtime.GOMAXPROCS(wp.Config.Workers)
 	}
 
 	// Start
