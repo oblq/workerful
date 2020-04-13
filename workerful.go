@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 
 	"github.com/oblq/sprbox"
+	"github.com/oblq/swap"
 )
 
 // Job is a job interface, useful if you need to pass parameters or do more complicated stuff.
@@ -24,8 +25,8 @@ type jobQueue chan interface{}
 
 // Config defines the config for workerful.
 type Config struct {
-	QueueSize int
-	Workers   int
+	QueueSize int `yaml:"QueueSize"`
+	Workers   int `yaml:"Workers"`
 }
 
 // Workerful is the workerful instance type.
@@ -76,7 +77,19 @@ func New(configPath string, config *Config) *Workerful {
 	return wp
 }
 
+// Configure is the https://github.com/oblq/swap 'Configurable' interface implementation.
+func (wp *Workerful) Configure(configFiles ...string) error {
+	if err := swap.Parse(wp.Config, configFiles...); err != nil {
+		return err
+	}
+	wp.configAndStart()
+	return nil
+}
+
 // SpareConfig is the https://github.com/oblq/sprbox 'configurable' interface implementation.
+//
+// Deprecated: use Swap package interfaces implementation instead.
+// https://github.com/oblq/swap
 func (wp *Workerful) SpareConfig(configFiles []string) error {
 	if err := sprbox.LoadConfig(&wp.Config, configFiles...); err != nil {
 		return err
@@ -86,6 +99,9 @@ func (wp *Workerful) SpareConfig(configFiles []string) error {
 }
 
 // SpareConfigBytes is the https://github.com/oblq/sprbox 'configurableInCollection' interface implementation.
+//
+// Deprecated: use Swap package interfaces implementation instead.
+// https://github.com/oblq/swap
 func (wp *Workerful) SpareConfigBytes(configBytes []byte) error {
 	if err := sprbox.Unmarshal(configBytes, &wp.Config); err != nil {
 		return err
